@@ -1,0 +1,298 @@
+"use client";
+
+import Image from "next/image";
+import { useEffect, useState } from "react";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "../collapsible/collapsible";
+// import {
+//   Dialog,
+//   DialogContent,
+//   DialogDescription,
+//   DialogHeader,
+//   DialogTitle,
+//   DialogTrigger,
+// } from "../dialog/dialog";
+
+// import { useState } from "react";
+
+export default function Inbox() {
+  let initTodo,todoTittle;
+
+  useEffect(() => {
+    if (localStorage.getItem("todo") === null) {
+      initTodo = [];
+    } else {
+      initTodo = JSON.parse(localStorage.getItem("todo") as string);
+    }
+  }, []);
+  
+  const [value, setValue] = useState(({
+    id:'',
+    title: '',
+    disc: '',
+
+  }))
+  const { id, title, disc } = value
+
+
+  const [list, setList] = useState<string[]>(initTodo || []);
+  const [isOpen, setisOpen] = useState(false);
+  const [inError, setInError] = useState(false);
+
+  const handleOnChange = (e: any) => {
+    const { name, value } = e.target
+    setValue({
+      id:'1',
+      title: {e.target.value},
+  
+    })
+    if (!value) {
+      setInError(true);
+    } else {
+      setInError(false);
+    }
+  };
+
+  const clickOnSubmit = (e: any) => {
+    if (!value) {
+      // console.log("vvvvvv",value.length)
+      setInError(true);
+    } else {
+      setList([...list, value as any]);
+      setValue(({
+        id:'',
+        title: '',
+        disc: '',
+    
+      }));
+      setInError(false);
+    }
+  };
+
+  useEffect(() => {
+    localStorage.setItem("todo", JSON.stringify(list));
+  }, [list]);
+
+  const clickOnDelete = (e: any) => {
+    let deleteone = [...list];
+    deleteone.splice(e, 1);
+    setList([...deleteone]);
+    localStorage.setItem("todo", JSON.stringify(list));
+  };
+
+  //delete all the element
+  const clickOnDeleteall = (e: any) => {
+    let deleteone = [...list];
+    deleteone.splice(e);
+    setList([...deleteone]);
+  };
+
+  return (
+    <>
+      <div>
+        <p className="text-3xl font-bold">Index</p>
+        <div>
+          {/* <p onClick={() => setisOpen(true)}>Add Task</p> */}
+
+          <Collapsible>
+            <CollapsibleTrigger>Add Task</CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="border border-red-300 w-4/5 rounded-xl">
+                <input
+                  type="text"
+                  className="border-none outline-none text-xl w-full p-1 px-2 text-black "
+                  placeholder="Add Data"
+                  value={value}
+                  onChange={handleOnChange}
+                />
+                <button
+                  type="submit"
+                  className="border-2 border-red-300  hover:border-red-600 rounded-xl text-xl py-1 px-3 m-2"
+                  onClick={clickOnSubmit}
+                >
+                  Add
+                </button>
+                {inError && <p className="text-red-500">Please enter data</p>}
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+
+          <ul className="pt-2">
+            {list.length > 0 ? (
+              list.map((item) => (
+                <div key={item}>
+                  <li className="border-b border-red-300 flex items-center justify-between py-4">
+                    <label className="flex items-center">
+                      <input type="checkbox" className="mr-2" />
+                      <span>{item}</span>
+                    </label>
+                    <div>
+                      <button
+                        type="submit"
+                        className="border-2 rounded-xl text-2xl px-2 ml-2"
+                        onClick={clickOnDelete}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </li>
+                </div>
+              ))
+            ) : (
+              <div className="flex flex-col items-center p-6">
+                <Image
+                  src={"assets/images/peace-of-mind.svg"}
+                  width={200}
+                  height={200}
+                  alt="#"
+                />
+                <p>Your peace of mind is priceless</p>
+              </div>
+            )}
+          </ul>
+        </div>
+        {/* <Dialog open={isOpen}>
+          <DialogTrigger>Open</DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Are you absolutely sure?</DialogTitle>
+              <DialogDescription>
+                This action cannot be undone. This will permanently delete your
+                account and remove your data from our servers.
+              </DialogDescription>
+            </DialogHeader>
+          </DialogContent>
+        </Dialog> */}
+      </div>
+    </>
+  );
+}
+
+
+
+
+
+
+
+
+
+
+"use client";
+import { useEffect, useState } from "react";
+
+export default function Inbox() {
+  const [value, setValue] = useState("");
+  const [list, setList] = useState<{ [key: string]: boolean }>({});
+  const [inError, setInError] = useState(false);
+  const [showTaskInput, setShowTaskInput] = useState(false);
+
+  useEffect(() => {
+    const storedList = localStorage.getItem("todo");
+    if (storedList) {
+      setList(JSON.parse(storedList));
+    }
+  }, []);
+
+  const handleOnChange = (e:any) => {
+    setValue(e.target.value);
+    setInError(false); // Reset error when input changes
+  };
+
+  const clickOnSubmit = () => {
+    if (!value) {
+      setInError(true);
+      return;
+    }
+
+    // const newList = { ...list };
+    const nextKey = Object.keys(list).length + 1;
+
+    setList({ ...list, [nextKey]: { task: value } });
+    setValue("");
+    setInError(false);
+    localStorage.setItem("todo", JSON.stringify(list));
+  };
+
+  const clickOnDelete = (key: string) => {
+    const deleteList = { ...list };
+    delete deleteList[key];
+    setList(deleteList);
+    localStorage.setItem("todo", JSON.stringify(deleteList));
+  };
+
+  return (
+    <>
+      <div>
+        <p className="text-3xl font-bold">Index</p>
+        <div>
+          <p onClick={() => setShowTaskInput(!showTaskInput)}>Add Task</p>
+          {showTaskInput && (
+            <div className="border-2 border-red-300 w-4/5 rounded-xl">
+              <input
+                type="text"
+                className="border-none outline-none text-xl mt-2 w-full p-1 px-2 text-black"
+                placeholder="Add Data"
+                value={value}
+                onChange={handleOnChange}
+              />
+              <button
+                type="submit"
+                className="border-2 border-red-300 hover:border-red-600 rounded-xl text-xl py-1 px-3 m-2"
+                onClick={clickOnSubmit}
+              >
+                Add
+              </button>
+              {inError && <p className="text-red-500">Please enter data</p>}
+            </div>
+          )}
+
+          <ul className="pt-2">
+            {Object.entries(list).map(([key, value]) => (
+              <div key={key}>
+                <li className="border-b border-red-300 flex items-center justify-between py-4">
+                  <label className="flex items-center">
+                    <input type="checkbox" className="mr-2" />
+                    <span>{value}</span>
+                  </label>
+                  <div>
+                    <button
+                      type="submit"
+                      className="border-2 rounded-xl text-2xl px-2 ml-2"
+                      onClick={() => clickOnDelete(key)}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </li>
+              </div>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </>
+  );
+}
+
+  // const handleOnCheckDelete = () =>{
+  //   setList(updatedList);
+  //   setSelectedItems([]);
+  //   localStorage.setItem("todo", JSON.stringify(updatedList));
+  // }
+  // const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>, itemId: number) => {
+  //   const isChecked = e.target.checked;
+  //   setSelectedItems((prevSelected) =>
+  //     isChecked ? [...prevSelected, itemId] : prevSelected.filter((id) => id !== itemId)
+  //   );
+  // }
+
+
+   {/* <button
+            type="button"
+            onClick={() => handleOnCheckDelete()}
+            disabled={selectedItems.length === 0}
+          >
+            Select Delete
+          </button> */}
